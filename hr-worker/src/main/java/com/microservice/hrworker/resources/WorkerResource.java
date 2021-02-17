@@ -5,6 +5,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,9 +19,11 @@ import com.microservice.hrworker.entities.Worker;
 @RestController
 @RequestMapping(value = "/workers")
 public class WorkerResource {
-	
 	private static Logger logger = LoggerFactory.getLogger(WorkerResource.class);
-	
+
+	@Value("${test.config}")
+	private String testConfig;
+
 	@Autowired
 	private Environment env;
 
@@ -32,6 +35,12 @@ public class WorkerResource {
 		return ResponseEntity.ok(repository.findAll());
 	}
 
+	@GetMapping(value = "/configs")
+	public ResponseEntity<Void> getConfigs() {
+		logger.info("CONFIG = " + testConfig);
+		return ResponseEntity.noContent().build();
+	}
+
 	@GetMapping(value = "/{id}")
 	public ResponseEntity<Worker> getById(@PathVariable Long id) {
 		try {
@@ -39,7 +48,7 @@ public class WorkerResource {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
+
 		logger.info("PORT = " + env.getProperty("local.server.port"));
 		Worker worker = repository.findById(id).get();
 		return ResponseEntity.ok(worker);
