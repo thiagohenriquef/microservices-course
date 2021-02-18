@@ -1,6 +1,7 @@
 package com.microservice.hroauth.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -17,6 +18,12 @@ import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenCo
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
 
 	private static final int SECONDS = 60 * 60 * 24;
+	
+	@Value("${oauth.client.name}")
+	private String oauthClientName;
+
+	@Value("${oauth.client.secret}")
+	private String oauthClientSecret;
 
 	@Autowired
 	private BCryptPasswordEncoder passwordEncoder;
@@ -41,8 +48,8 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 	public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
 		clients
 			.inMemory()
-			.withClient("myappname123")
-			.secret(passwordEncoder.encode("myappsecret123"))
+			.withClient(oauthClientName)
+			.secret(passwordEncoder.encode(oauthClientSecret))
 			.scopes("read", "write")
 			.authorizedGrantTypes("password")
 			.accessTokenValiditySeconds(SECONDS);
