@@ -10,46 +10,43 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.A
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
-import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
 @Configuration
 @EnableAuthorizationServer
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
-
 	private static final int SECONDS = 60 * 60 * 24;
 	
 	@Value("${oauth.client.name}")
-	private String oauthClientName;
-
+	private String clientName;
+	
 	@Value("${oauth.client.secret}")
-	private String oauthClientSecret;
-
+	private String clientSecret;
+	
 	@Autowired
 	private BCryptPasswordEncoder passwordEncoder;
-
+	
 	@Autowired
 	private JwtAccessTokenConverter accessTokenConverter;
+	
+	@Autowired
+	private JwtTokenStore tokenStore;
 
 	@Autowired
-	private TokenStore tokenStore;
-
-	@Autowired
-	private AuthenticationManager authManager;
-
+	private AuthenticationManager authenticationManager;
+		
 	@Override
 	public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
-		security
-			.tokenKeyAccess("permitAll()")
-			.checkTokenAccess("isAuthenticated()");
+		security.tokenKeyAccess("permitAll()").checkTokenAccess("isAuthenticated()");
 	}
 
 	@Override
 	public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
 		clients
 			.inMemory()
-			.withClient(oauthClientName)
-			.secret(passwordEncoder.encode(oauthClientSecret))
+			.withClient(clientName)
+			.secret(passwordEncoder.encode(clientSecret))
 			.scopes("read", "write")
 			.authorizedGrantTypes("password")
 			.accessTokenValiditySeconds(SECONDS);
@@ -58,9 +55,8 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 	@Override
 	public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
 		endpoints
-			.authenticationManager(authManager)
+			.authenticationManager(authenticationManager)
 			.tokenStore(tokenStore)
 			.accessTokenConverter(accessTokenConverter);
 	}
-
 }
